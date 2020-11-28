@@ -1,0 +1,238 @@
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+
+* Static Website Literate Demo
+** Tangle
+
+#+begin_src elisp
+(org-babel-tangle)
+#+end_src
+
+** export page
+
+Put cursor over the page name and run export-page defined
+below. An html exported version will appear below it that is
+configured to tangle correctly to a html file.
+
+#+begin_src elisp
+(defun export-page ()
+  (interactive)
+  (org-beginning-of-line)
+  (search-forward "page:")
+  (save-selected-window
+	(let ((filename (buffer-substring-no-properties (point) (line-end-position))))
+	  (save-excursion
+		(org-html-export-as-html nil t nil t)
+		(insert (concat "** file:" filename "\n\n#+begin_src html :tangle " filename " :noweb no-export\n<<top>>\n"))
+		(goto-char (point-max))
+		(insert "<<bottom>>\n#+end_src"))
+	  (if (search-forward (concat "** file:" filename) nil t nil)
+		  (org-cut-subtree)
+		(goto-char (point-max)))
+	  (insert-buffer-substring "*Org HTML Export*")
+	  (insert "\n"))))
+#+end_src
+
+#+RESULTS:
+: export-page
+
+** To host locally
+
+build a simple executable to serve static assets locally
+
+#+begin_src bash
+go build
+#+end_src
+
+#+RESULTS:
+
+To run, execute the following. The server will launch in a separate
+window.
+
+#+begin_src elisp
+(async-shell-command "./static-website-literate-demo")
+#+end_src
+
+#+RESULTS:
+: #<window 407 on *Async Shell Command*>
+
+** file:static/css/style.css
+
+I just started with what w3 schools recommended for a navbar. I
+tweaked it from there:
+
+https://www.w3schools.com/howto/howto_css_fixed_sidebar.asp
+
+#+name: css_file
+#+begin_src css :tangle static/css/style.css :mkdirp yes :noweb no-export
+.sidenav {
+  height: 100%;
+  width: 160px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+.sidenav a {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  color: #818181;
+  display: block;
+}
+
+.sidenav a:hover {
+  color: #f1f1f1;
+}
+
+.main {
+  margin-left: 160px; /* Same as the width of the sidenav */
+  padding: 0px 10px;
+  width: 800px;
+}
+
+.example {
+  background-color: #eee;
+  border: 1px solid #999;
+  display: block;
+  padding: 20px;
+}
+
+code { background-color: #eee; }
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
+#+end_src
+
+** Navbar
+
+A simple little navbar
+
+navbar+=
+#+name: navbar
+#+begin_src html :noweb no-export
+<div class="sidenav">
+  <a href="index.html">Home</a>
+  <a href="essays.html">Essays</a>
+  <a href="refs.html">Links</a>
+  <a href="bio.html">Bio</a>
+</div>
+#+end_src
+
+** Top
+
+top+=
+#+name: top
+#+begin_src html :noweb no-export
+<!DOCTYPE html>
+<html>
+  <<headers>>
+  <body>
+    <<navbar>>
+    <div class="main">
+    <<banner>>
+#+end_src
+
+** Bottom
+
+bottom+=
+#+name: bottom
+#+begin_src html :noweb no-export
+    </div>
+  </body>
+</html>
+#+end_src
+
+** Headers
+
+headers+=
+#+name: headers
+#+begin_src html :noweb no-export
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" type="text/css" href="css/style.css" />
+</head>
+#+end_src
+
+** file:static/index.html
+
+#+begin_src html :tangle static/index.html :noweb no-export
+<<top>>
+<img src="img/typewriter.jpg"></br>
+Image by <a href="https://pixabay.com/photos/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=407695">Free-Photos</a>
+    from <a href="https://pixabay.com/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=407695">Pixabay</a></br></br>
+
+New: <a href="one.html">One Essay</a>,
+<a href="another.html">Another Essay</a>
+<<bottom>>
+#+end_src
+
+** Banner
+
+banner+=
+#+name: banner
+#+begin_src html :noweb no-export
+<h2>----Static Website Literate Demo----</h2></br>
+#+end_src
+
+** file:static/bio.html
+#+begin_src html :tangle static/bio.html :noweb no-export
+<<top>>
+<h2>Bio</h2>
+<p>Put a bio here</p>
+<<bottom>>
+#+end_src
+
+** file:static/essays.html
+#+begin_src html :tangle static/essays.html :noweb no-export
+<<top>>
+<h2>Essays</h2></br>
+2020-11-25 <a href="one.html">One Essay</a></br>
+2020-10-18 <a href="another.html">Another Essay</a></br>
+<<bottom>>
+#+end_src
+
+** file:static/refs.html
+#+begin_src html :tangle static/refs.html :noweb no-export
+<<top>>
+  <h2>Some of My Favorites Resources</h2></br>
+<<bottom>>
+#+end_src
+
+** file:static/one.html
+#+begin_src html :tangle static/one.html :noweb no-export
+<<top>>
+  <h2>One Essay</h2>
+<<bottom>>
+#+end_src
+
+** page:static/another.html
+*** Another Essay
+1. item 1
+2. item 2
+3. item 3
+4. item 4
+  
+
+** file:static/another.html
+
+#+begin_src html :tangle static/another.html :noweb no-export
+<<top>>
+<div id="outline-container-org13c65d3" class="outline-2">
+<h2 id="org13c65d3">Another Essay</h2>
+<div class="outline-text-2" id="text-org13c65d3">
+<ol class="org-ol">
+<li>item 1</li>
+<li>item 2</li>
+<li>item 3</li>
+<li>item 4</li>
+</ol>
+</div>
+</div>
+<<bottom>>
+#+end_src
